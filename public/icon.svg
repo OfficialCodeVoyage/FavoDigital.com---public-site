@@ -1,0 +1,10 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FavoDigital honeycomb mark">
+  <g stroke="#f5b642" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" fill="none">
+    <!-- Top hexagon (filled honey, low opacity) -->
+    <polygon points="32,6 43,12.5 43,25.5 32,32 21,25.5 21,12.5" fill="#f5b642" fill-opacity="0.18" />
+    <!-- Bottom-left hexagon -->
+    <polygon points="21,32 32,38.5 32,51.5 21,58 10,51.5 10,38.5" />
+    <!-- Bottom-right hexagon -->
+    <polygon points="43,32 54,38.5 54,51.5 43,58 32,51.5 32,38.5" />
+  </g>
+</svg>

@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/*
+ * FavoDigital design tokens.
+ * "favo" = honeycomb → honey-amber accent on deep ink, with a subtle hex motif.
+ * This is the holding-page system; the full gamified identity lands in the design pass.
+ */
+:root {
+  --ink-900: #07090f;
+  --ink-800: #0b0e14;
+  --ink-700: #11151f;
+  --ink-border: #1d2331;
+  --paper: #eef1f6;
+  --muted: #8b93a7;
+  --honey: #f5b642;
+  --honey-bright: #ffcf6b;
+  --background: var(--ink-800);
+  --foreground: var(--paper);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-ink-900: var(--ink-900);
+  --color-ink-800: var(--ink-800);
+  --color-ink-700: var(--ink-700);
+  --color-ink-border: var(--ink-border);
+  --color-muted: var(--muted);
+  --color-honey: var(--honey);
+  --color-honey-bright: var(--honey-bright);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  border-color: var(--ink-border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle honeycomb field — the brand's namesake, kept low-contrast as atmosphere. */
+.favo-hex-field {
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(245, 182, 66, 0.08), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cg fill='none' stroke='%231d2331' stroke-width='1'%3E%3Cpath d='M28 0L56 16.7V50L28 66.7L0 50V16.7z'/%3E%3Cpath d='M28 66.7L56 83.3V116.7L28 133.3L0 116.7V83.3z'/%3E%3C/g%3E%3C/svg%3E");
+  background-position: center top;
+}
+
+@keyframes favo-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.favo-rise {
+  animation: favo-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .favo-rise {
+    animation: none;
+  }
+}
