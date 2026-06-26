@@ -1,0 +1,148 @@
+/*
+ * HiveBand — the folded SEO payload pinned to the bottom of the single screen:
+ * three services + locality + contact + the favicon wink. Server-rendered and
+ * crawlable; visually compact. Entrance is driven by the `in` class (set by the
+ * hero once it enters) so this stays decoupled from the stage's state selectors.
+ */
+.band {
+  margin-top: clamp(22px, 4vh, 52px);
+  padding-top: clamp(16px, 2.2vh, 26px);
+  border-top: 1px solid rgba(245, 166, 35, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 1.8vh, 20px);
+  opacity: 0;
+  transform: translateY(10px);
+}
+.band.in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.3s,
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.3s;
+}
+
+.services {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(16px, 2.4vw, 36px);
+}
+.svcItem {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.svcKicker {
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #f4efe3;
+}
+.svcBlurb {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #9a968c;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  max-width: 26ch;
+}
+
+.bandMeta {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: #6b675e;
+}
+.sep {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(245, 166, 35, 0.4);
+}
+.contact a {
+  color: #f4efe3;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(245, 166, 35, 0.4);
+  padding-bottom: 1px;
+  transition:
+    color 0.3s,
+    border-color 0.3s;
+}
+.contact a:hover {
+  color: #ffc861;
+  border-color: #ffc861;
+}
+.contact a:focus-visible {
+  outline: 2px solid #ffc861;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.wink {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-size: 12.5px;
+  color: #9a968c;
+}
+.winkHex {
+  display: inline-block;
+  width: 0.6em;
+  height: 0.68em;
+  margin: 0 0.02em;
+  vertical-align: -0.06em;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(150deg, #ffc861, #f5a623 55%, #c8881f);
+}
+
+@media (max-width: 900px) {
+  .services {
+    grid-template-columns: 1fr;
+    gap: clamp(8px, 1.6vh, 14px);
+  }
+  .svcItem {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .svcKicker {
+    flex: 0 0 auto;
+  }
+  .svcBlurb {
+    max-width: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 560px) {
+  .bandMeta {
+    font-size: 11px;
+  }
+}
+
+/* Short-viewport guard: drop blurbs (kept in DOM) so titles + locality + contact
+   — the SEO must-haves — always stay on the single screen. */
+@media (max-height: 670px) {
+  .svcBlurb {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .band {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

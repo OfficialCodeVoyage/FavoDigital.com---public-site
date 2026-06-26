@@ -1,0 +1,109 @@
+/*
+ * Preloader — the opening beat of "the hive builds itself". The backdrop is
+ * TRANSPARENT (the stage's deep-ink radial shows straight through, so nothing
+ * cross-fades), and the only mark is a single honey-amber SEED at dead-centre —
+ * the hive's first warm cell. It sparks to life, breathes while the field is
+ * built + measured underneath, then yields fast (a clean fade, no scale-up): its
+ * outward energy is handed to the field's .buildSweep wavefront, which constructs
+ * the comb. Self-removing (visibility), accessible (role=status), skipped on
+ * reduced motion. The --ease-* / --muted-dim tokens inherit from .stage.
+ */
+.loader {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  gap: 26px;
+  background: transparent;
+  transition: opacity 0.32s var(--ease-soft);
+}
+.loader[data-hide="true"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* SEED = the hive's first warm cell (same lit-wax radial the warm cells use). */
+.hex {
+  position: relative;
+  width: 60px;
+  height: 69px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background:
+    linear-gradient(180deg, rgba(255, 246, 230, 0.05) 0%, rgba(255, 246, 230, 0) 40%),
+    rgba(255, 255, 255, 0.015);
+  box-shadow: inset 0 0 0 1px rgba(245, 166, 35, 0.45);
+}
+.hex::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: inherit;
+  background: radial-gradient(
+    78% 62% at 50% 43%,
+    #fff2d4 0%,
+    #ffd98f 26%,
+    #ffc861 45%,
+    #f5a623 74%,
+    #c8881f 100%
+  );
+  transform: scale(0);
+  transform-origin: 50% 50%;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: spark 0.52s var(--ease-out) 0.06s forwards;
+}
+.hex::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: inherit;
+  opacity: 1;
+  box-shadow: 0 0 0 rgba(245, 166, 35, 0);
+  /* Glow blooms in, then breathes so a long font/JS load never looks frozen. */
+  animation:
+    glowIn 0.6s var(--ease-soft) 0.18s forwards,
+    seedBreath 3.4s var(--ease-soft) 0.9s infinite alternate;
+}
+@keyframes spark {
+  0% { transform: scale(0); opacity: 0; }
+  45% { opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes glowIn {
+  to { box-shadow: 0 0 26px 2px rgba(245, 166, 35, 0.55); }
+}
+@keyframes seedBreath {
+  from { box-shadow: 0 0 18px 1px rgba(245, 166, 35, 0.4); }
+  to { box-shadow: 0 0 30px 3px rgba(255, 200, 97, 0.62); }
+}
+
+/* Handoff: no scale-up seal — the seed yields with a fast fade; the .buildSweep
+   wavefront (born this same instant) carries the expansion outward. */
+.loader[data-hide="true"] .hex::after { animation: none; }
+.loader[data-hide="true"] .hex {
+  transition: opacity 0.22s var(--ease-soft);
+  opacity: 0;
+}
+
+.label {
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+  opacity: 0;
+  animation: labelIn 0.5s var(--ease-soft) 0.22s forwards;
+}
+@keyframes labelIn {
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No gate, no spark/breath — the built hive shows immediately. */
+  .loader {
+    display: none;
+  }
+}

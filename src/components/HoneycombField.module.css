@@ -1,0 +1,839 @@
+/*
+ * HoneycombField — "First Light over the Hive" (Direction-C immersive hero).
+ *
+ * A single, fixed 100dvh screen — the page never scrolls. A near-black honeycomb
+ * sits dormant; a few "ember" cells breathe so the field reads as alive. The
+ * cursor wakes cells (proximity + a heat-memory wake); warming the hive past a
+ * ~26%-capped threshold fires FIRST LIGHT — a distance-ordered ignition front —
+ * then THE SEAL: the hex 'o' presses down and a honey ring sets.
+ *
+ * Layers (z): ambient 0 · cursorGlow 1 · field 2 · vignette 3 · ui 4.
+ * The loader (Preloader) and folded SEO band (HiveBand) live in sibling modules.
+ */
+
+/* Smoothly-interpolable custom property for ember breathing. */
+@property --eg {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.stage {
+  --amber: #f5a623;
+  --honey: #ffc861;
+  --amber-deep: #c8881f;
+  --hero-ink: #0e0d0b;
+  --hero-ink-2: #070605;
+  --paper: #f4efe3;
+  --muted: #9a968c;
+  --muted-dim: #6b675e;
+  --edge: rgba(245, 166, 35, 0.13);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --gx: 50vw;
+  --gy: 42vh;
+  --glow: 0;
+  --cell: 96px;
+  --gap: 8px;
+
+  position: relative;
+  height: 100dvh;
+  overflow: hidden;
+  isolation: isolate;
+  touch-action: none; /* let touch-drag paint the hive instead of scrolling */
+  background: radial-gradient(
+    120% 90% at 18% 88%,
+    #14110a 0%,
+    var(--hero-ink) 60%,
+    var(--hero-ink-2) 100%
+  );
+  color: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Atmosphere ─────────────────────────────────────────────────────────── */
+.cursorGlow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 60vmax;
+  height: 60vmax;
+  /* Centre on origin via margin, then track the cursor with a composited
+     transform — moving via left/top would relayout this 60vmax layer per frame. */
+  margin: -30vmax 0 0 -30vmax;
+  transform: translate3d(var(--gx), var(--gy), 0);
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(
+    closest-side,
+    rgba(245, 166, 35, 0.16) 0%,
+    rgba(245, 166, 35, 0.06) 38%,
+    rgba(245, 166, 35, 0) 72%
+  );
+  opacity: calc(0.5 + var(--glow) * 0.5);
+  transition: opacity 1.2s var(--ease-soft);
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+.ambient {
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 50% at 75% 18%, rgba(245, 166, 35, 0.05), transparent 70%),
+    radial-gradient(50% 60% at 12% 78%, rgba(120, 90, 40, 0.06), transparent 72%);
+  opacity: calc(0.5 + var(--glow) * 0.5);
+  animation: drift 26s ease-in-out infinite alternate;
+  transition: opacity 1.4s var(--ease-soft);
+}
+@keyframes drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(2.5%, -2%, 0) scale(1.06); }
+}
+.vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    linear-gradient(105deg, rgba(7, 6, 5, 0.8) 0%, rgba(7, 6, 5, 0.32) 30%, rgba(7, 6, 5, 0) 55%),
+    linear-gradient(0deg, rgba(7, 6, 5, 0.92) 0%, rgba(7, 6, 5, 0.5) 26%, rgba(7, 6, 5, 0) 58%),
+    radial-gradient(140% 120% at 80% 6%, transparent 55%, rgba(7, 6, 5, 0.7) 100%);
+  transition: opacity 1s var(--ease-soft);
+}
+/* Legibility scrim — a soft ink plate anchored lower-left where all hero copy
+   lives. Reveal-ramped: dormant leans on .vignette above; on First Light this
+   deepens to cancel the now-lit comb so the text keeps a dark backing in BOTH
+   states. One static layer, no blur, no will-change → does not touch frame cost. */
+.vignette::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.1s var(--ease-soft);
+  background:
+    radial-gradient(clamp(440px, 54vw, 780px) 118% at 8% 102%,
+      rgba(6, 5, 4, 0.96) 0%, rgba(6, 5, 4, 0.92) 30%, rgba(6, 5, 4, 0.66) 48%,
+      rgba(6, 5, 4, 0.3) 62%, rgba(6, 5, 4, 0) 78%),
+    linear-gradient(100deg, rgba(7, 6, 5, 0.62) 0%, rgba(7, 6, 5, 0.28) 20%, rgba(7, 6, 5, 0) 44%),
+    linear-gradient(0deg, rgba(7, 6, 5, 0.66) 0%, rgba(7, 6, 5, 0.2) 14%, rgba(7, 6, 5, 0) 24%);
+}
+.stage.revealed .vignette::after { opacity: 1; }
+
+/* Construction light-sweep — a ring of light expands from centre as the hive builds. */
+.buildSweep {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46vmax;
+  height: 46vmax;
+  transform: translate3d(-50%, -50%, 0) scale(0);
+  border-radius: 50%;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    closest-side,
+    transparent 52%,
+    rgba(255, 200, 97, 0.3) 66%,
+    rgba(245, 166, 35, 0.1) 78%,
+    transparent 90%
+  );
+  filter: blur(1px);
+  mix-blend-mode: screen;
+}
+/* Born the instant the loader seed yields (delay 0) — its leading band is the
+   wavefront that "lights" each ring of cells as it passes. */
+.stage.entered .buildSweep {
+  animation: sweepOut 0.72s var(--ease-out) 0s;
+}
+@keyframes sweepOut {
+  0% {
+    transform: translate3d(-50%, -50%, 0) scale(0.12);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(-50%, -50%, 0) scale(3);
+    opacity: 0;
+  }
+}
+
+/* ── Honeycomb field ────────────────────────────────────────────────────── */
+.fieldWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.field {
+  position: absolute;
+  inset: -6% -4%;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+.hexRow {
+  display: flex;
+  margin-top: calc(var(--cell) * -0.275);
+  pointer-events: none;
+}
+.hexRow:first-child { margin-top: 0; }
+.hexRow.odd { margin-left: calc(var(--cell) * 0.5); }
+
+.cell {
+  position: relative;
+  width: var(--cell);
+  height: calc(var(--cell) * 1.1547);
+  margin: 0 calc(var(--gap) * 0.5);
+  flex: 0 0 auto;
+  pointer-events: auto;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  opacity: 0; /* entrance: faded until .entered */
+  -webkit-tap-highlight-color: transparent;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  /* No base translate3d / will-change: promoting all ~285 cells to their own
+     compositing layers permanently is what janked the lit end-state. Transforms
+     during the entrance/hover/pulse animations promote transiently on their own. */
+  transition: transform 0.5s var(--ease-out);
+}
+.cell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: inherit;
+  /* Resting wall: dark + precious — warm top sheen, soft floor shadow, faint lift. */
+  background:
+    linear-gradient(180deg, rgba(255, 246, 230, 0.04) 0%, rgba(255, 246, 230, 0) 38%),
+    radial-gradient(120% 85% at 50% 116%, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 56%),
+    rgba(255, 255, 255, 0.012);
+  box-shadow:
+    inset 0 0 0 1px var(--edge),
+    inset 0 1px 0 0 rgba(255, 234, 201, 0.05);
+  transition: background 0.45s var(--ease-soft), box-shadow 0.45s var(--ease-soft);
+}
+.cell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: inherit;
+  opacity: var(--w, 0);
+  background: radial-gradient(
+    closest-side at 50% 46%,
+    rgba(255, 213, 138, 0.55) 0%,
+    rgba(245, 166, 35, 0.24) 52%,
+    rgba(245, 166, 35, 0) 100%
+  );
+  box-shadow: inset 0 0 0 1px rgba(245, 166, 35, calc(0.15 + var(--w, 0) * 0.6));
+  transition: opacity 0.5s var(--ease-soft);
+}
+.cell:hover::before {
+  background: rgba(245, 166, 35, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(245, 166, 35, 0.4);
+}
+.cell:hover { transform: translate3d(0, 0, 0) scale(1.04); }
+.cell:focus-visible::before {
+  box-shadow: inset 0 0 0 2px var(--honey), 0 0 0 3px rgba(255, 200, 97, 0.35);
+  background: rgba(245, 166, 35, 0.08);
+}
+
+/* Embers — a few cells breathe so the field reads alive + clickable at rest. */
+.cell.ember::after { opacity: max(var(--w, 0), var(--eg, 0)); }
+.cell.ember { animation: emberBreath 5.2s var(--ease-soft) infinite alternate; }
+@keyframes emberBreath {
+  from { --eg: 0.07; }
+  to { --eg: 0.26; }
+}
+
+.cell.warm::before {
+  /* Translucent wax body — clear core (lets the lit base glow through), deep rim. */
+  background:
+    linear-gradient(180deg, rgba(255, 244, 216, 0.45) 0%, rgba(255, 244, 216, 0.12) 24%, rgba(255, 244, 216, 0) 46%),
+    radial-gradient(72% 60% at 50% 45%, rgba(160, 104, 20, 0) 0%, rgba(160, 104, 20, 0.06) 40%, rgba(150, 96, 18, 0.42) 74%, rgba(120, 76, 12, 0.8) 100%);
+  box-shadow:
+    inset 0 0 0 2px rgba(110, 62, 8, 0.5),
+    inset 0 7px 11px -5px rgba(255, 244, 216, 0.55),
+    inset 0 -12px 17px -6px rgba(100, 54, 6, 0.62);
+}
+.cell.warm::after {
+  /* Crisp honey rim-light + a pinpoint specular — overrides the proximity glow. */
+  opacity: 1;
+  background: radial-gradient(28% 20% at 46% 17%, rgba(255, 250, 236, 0.92) 0%, rgba(255, 250, 236, 0.35) 45%, rgba(255, 250, 236, 0) 72%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 213, 130, 0.95),
+    inset 0 0 8px rgba(255, 200, 97, 0.5);
+}
+.cell.warm {
+  /* Lit-from-within core + a single outer bloom that bridges the comb gap.
+     One drop-shadow (was two): a filtered, clip-path'd element renders to an
+     offscreen buffer, so halving the count roughly halves the lit-cell paint. */
+  background: radial-gradient(78% 62% at 50% 43%, #fff2d4 0%, #ffd98f 26%, #ffc861 45%, #f5a623 74%, #c8881f 100%);
+  filter: drop-shadow(0 0 14px rgba(245, 170, 50, 0.5));
+  transition: transform 0.5s var(--ease-out), filter 0.35s var(--ease-soft);
+}
+.cell.pulse { animation: pulse 0.46s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+/* ── Foreground UI (topbar / hero / band stack) ─────────────────────────── */
+.ui {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: clamp(20px, 3.2vw, 56px);
+}
+.ui a,
+.ui button { pointer-events: auto; }
+
+.topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.wordmark {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-optical-sizing: auto;
+  font-size: clamp(22px, 2.1vw, 30px);
+  letter-spacing: -0.01em;
+  color: var(--paper);
+  text-shadow: 0 1px 2px rgba(7, 6, 5, 0.7), 0 0 16px rgba(7, 6, 5, 0.45);
+}
+.wordmarkHex {
+  position: relative;
+  display: inline-block;
+  width: 0.62em;
+  height: 0.7em;
+  margin: 0 0.06em;
+  vertical-align: -0.06em;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(150deg, var(--honey), var(--amber) 55%, var(--amber-deep));
+  box-shadow: 0 0 10px rgba(245, 166, 35, 0.4);
+  animation: hexBreath 5.2s var(--ease-soft) infinite alternate;
+}
+@keyframes hexBreath {
+  from { box-shadow: 0 0 7px rgba(245, 166, 35, 0.28); }
+  to { box-shadow: 0 0 17px rgba(245, 166, 35, 0.62); }
+}
+/* The build wavefront strikes the mark alight, then idle breathing resumes. */
+.wordmarkHex::after {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(255, 200, 97, 0.55);
+  opacity: 0;
+  pointer-events: none;
+}
+.stage.entered .wordmarkHex {
+  animation:
+    markStrike 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.82s both,
+    hexBreath 5.2s var(--ease-soft) 1.32s infinite alternate;
+}
+.stage.entered .wordmarkHex::after {
+  animation: markRing 0.6s var(--ease-out) 0.9s both;
+}
+@keyframes markStrike {
+  0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(245, 166, 35, 0)); }
+  45% { transform: scale(1.2); filter: drop-shadow(0 0 14px rgba(255, 200, 97, 0.85)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(245, 166, 35, 0.45)); }
+}
+@keyframes markRing {
+  from { transform: scale(0.7); opacity: 0.55; }
+  to { transform: scale(2); opacity: 0; }
+}
+.status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  text-align: right;
+}
+.statusLine,
+.statusCompact {
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.statusCompact { display: none; }
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  margin-right: 8px;
+  vertical-align: middle;
+  box-shadow: 0 0 10px var(--amber);
+  animation: blink 2.6s ease-in-out infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* Hero — pushed into the lower third with editorial breath above. */
+.hero {
+  margin-top: auto;
+  max-width: 42rem;
+}
+.eyebrow {
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin: 0 0 clamp(16px, 2vw, 24px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-shadow: 0 1px 2px rgba(7, 6, 5, 0.5);
+}
+.eyebrow::before {
+  content: "";
+  width: clamp(26px, 3vw, 46px);
+  height: 1px;
+  background: linear-gradient(90deg, var(--amber), transparent);
+}
+.title {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-optical-sizing: auto;
+  font-variation-settings: "opsz" 144;
+  font-weight: 360;
+  font-size: clamp(2.6rem, 6.4vw, 6.25rem);
+  line-height: 0.94;
+  letter-spacing: -0.025em;
+  margin: 0;
+  color: var(--paper);
+}
+.titleLine {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
+}
+.titleInner {
+  display: block;
+  transform: translateY(112%);
+}
+.ital { font-style: italic; font-weight: 380; letter-spacing: -0.018em; }
+.ignite {
+  position: relative;
+  background-image: linear-gradient(100deg, var(--paper) 0%, var(--paper) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 100%;
+  background-position: 100% 0;
+  transition:
+    background-image 1.1s var(--ease-soft),
+    opacity 1s var(--ease-soft),
+    filter 1.1s var(--ease-soft);
+}
+.subhead {
+  margin: clamp(20px, 2.4vw, 30px) 0 0;
+  max-width: 40ch;
+  font-size: clamp(15px, 1.2vw, 17px);
+  line-height: 1.55;
+  color: var(--muted);
+  font-weight: 400;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  text-shadow: 0 1px 2px rgba(7, 6, 5, 0.6);
+}
+.subhead b { color: var(--paper); font-weight: 500; text-shadow: 0 1px 2px rgba(7, 6, 5, 0.65); }
+
+/* Invite + launch share ONE reserved grid cell, so the reveal line resolves
+   exactly where the meter was and the headline never jumps between states. */
+.exchange {
+  display: grid;
+  margin-top: clamp(24px, 3vw, 38px);
+}
+.exchange > .invite,
+.exchange > .launch {
+  grid-area: 1 / 1;
+  align-self: start;
+  margin-top: 0;
+}
+.invite {
+  margin-top: clamp(24px, 3vw, 38px);
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 2.4vw, 28px);
+  flex-wrap: wrap;
+}
+.hintWrap { display: flex; flex-direction: column; gap: 3px; }
+.hint {
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: opacity 0.6s var(--ease-soft);
+}
+.hint .spark {
+  width: 7px;
+  height: 8px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: var(--amber);
+  box-shadow: 0 0 8px var(--amber);
+  animation: beat 1.9s var(--ease-soft) infinite;
+}
+@keyframes beat {
+  0%, 100% { opacity: 0.4; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+.subhint {
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+  padding-left: 17px;
+  transition: opacity 0.6s var(--ease-soft);
+}
+
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: auto;
+  transition: opacity 0.6s var(--ease-soft);
+}
+.track {
+  position: relative;
+  width: clamp(110px, 16vw, 200px);
+  height: 3px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.fill {
+  position: absolute;
+  inset: 0;
+  /* Composited fill — scaleX (driven by --p in JS) instead of the layout prop
+     `right`, so the warming hot path never relayouts/repaints the bar. */
+  transform: scaleX(var(--p, 0));
+  transform-origin: left;
+  background: linear-gradient(90deg, var(--amber-deep), var(--amber) 55%, var(--honey));
+  box-shadow: 0 0 10px rgba(245, 166, 35, 0.6);
+  transition: transform 0.6s var(--ease-expo);
+}
+.pct {
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  min-width: 6.5ch;
+}
+.pct b { display: inline-block; color: var(--amber); font-weight: 500; }
+
+/* Reveal payoff — resolves where the invite was. */
+.launch {
+  position: relative;
+  margin-top: clamp(20px, 2.4vw, 30px);
+  /* Reserves its height in the shared grid cell (no height:0 collapse) so the
+     hero block stays the same size dormant↔revealed — visibility keeps it inert. */
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
+}
+.row { display: flex; align-items: baseline; gap: 14px 20px; flex-wrap: wrap; }
+.favor {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-optical-sizing: auto;
+  font-variation-settings: "opsz" 144;
+  font-style: italic;
+  font-weight: 380;
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+  letter-spacing: -0.018em;
+  /* Drop --amber-deep so the tail stays luminous against the scrim (no amber-on-amber). */
+  background: linear-gradient(100deg, var(--honey), var(--amber) 70%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  clip-path: inset(0 100% 0 0);
+  filter: drop-shadow(0 1px 1px rgba(20, 12, 0, 0.55));
+}
+.stage.revealed .favor { animation: favorWipe 0.55s var(--ease-expo) 0.15s forwards; }
+@keyframes favorWipe {
+  to { clip-path: inset(0 0 0 0); }
+}
+.favorHex {
+  position: relative;
+  display: inline-block;
+  width: 0.52em;
+  height: 0.6em;
+  margin: 0 0.03em;
+  vertical-align: -0.04em;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(150deg, var(--honey), var(--amber) 55%, var(--amber-deep));
+  -webkit-text-fill-color: initial;
+}
+/* THE SEAL — the hex presses down and a honey ring sets, after the line resolves. */
+.stage.revealed .favorHex { animation: sealPress 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) 0.9s both; }
+.favorHex::after {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(255, 200, 97, 0.5);
+  opacity: 0;
+  pointer-events: none;
+}
+.stage.revealed .favorHex::after { animation: sealRing 0.6s var(--ease-out) 1s both; }
+@keyframes sealPress {
+  0% { transform: scale(1.22); }
+  60% { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+@keyframes sealRing {
+  from { transform: scale(0.6); opacity: 0.5; }
+  to { transform: scale(2); opacity: 0; }
+}
+.stamp {
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid rgba(245, 166, 35, 0.25);
+  border-radius: 100px;
+  padding: 5px 12px;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(7, 6, 5, 0.55);
+}
+.reset {
+  margin-top: 14px;
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--muted);
+  font-family: var(--font-geist-mono), ui-monospace, Menlo, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 9px 16px;
+  border-radius: 100px;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition:
+    opacity 0.5s var(--ease-out),
+    transform 0.5s var(--ease-out),
+    color 0.3s,
+    border-color 0.3s;
+}
+.reset:hover { color: var(--honey); border-color: rgba(245, 166, 35, 0.5); }
+.reset:focus-visible { outline: 2px solid var(--honey); outline-offset: 2px; }
+
+/* ── Entrance choreography (added once via .entered after the loader) ────── */
+.eyebrow,
+.subhead,
+.invite { opacity: 0; transform: translateY(10px); }
+.topbar { opacity: 0; transform: translateY(-8px); }
+
+.stage.entered .topbar {
+  opacity: 1;
+  transform: none;
+  /* Arrive earlier so the FAV⬡ mark is on-screen before the wavefront strikes it. */
+  transition: opacity 0.5s var(--ease-out) 0.5s, transform 0.5s var(--ease-out) 0.5s;
+}
+.stage.entered .titleInner { transform: translateY(0); transition: transform 0.85s var(--ease-out); }
+/* Trimmed delays — the headline (LCP element) paints ~250ms sooner, no CLS. */
+.stage.entered .titleLine:nth-child(1) .titleInner { transition-delay: 0.15s; }
+.stage.entered .titleLine:nth-child(2) .titleInner { transition-delay: 0.27s; }
+.stage.entered .eyebrow {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.5s var(--ease-out) 0.5s, transform 0.5s var(--ease-out) 0.5s;
+}
+/* Subhead is the LCP element — tightened cascade so it paints ~400ms sooner
+   (still ordered after the eyebrow), keeping the staggered feel. */
+.stage.entered .subhead {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.6s var(--ease-out) 0.65s, transform 0.6s var(--ease-out) 0.65s;
+}
+.stage.entered .invite {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.6s var(--ease-out) 0.85s, transform 0.6s var(--ease-out) 0.85s;
+}
+.stage.entered .cell {
+  opacity: 1;
+  transition: opacity 0.55s var(--ease-out) var(--ed, 0ms), transform 0.5s var(--ease-out);
+}
+/* Pop only non-embers, so embers keep their own breathing animation. */
+.stage.entered .cell:not(.ember) {
+  animation: cellPop 0.56s var(--ease-out) var(--ed, 0ms);
+}
+@keyframes cellPop {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.45);
+  }
+  55% {
+    transform: translate3d(0, 0, 0) scale(1.07);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* ── Reveal state (warm end-state) ──────────────────────────────────────── */
+.stage.revealed { --glow: 1; }
+/* First Light is the finish — fade the cursor glow out (it also frees the scrim
+   from per-frame recompositing, since nothing moves beneath it anymore). */
+.stage.revealed .cursorGlow { opacity: 0; }
+.stage.revealed .titleLine:nth-child(1) .ignite {
+  opacity: 0.72;
+  transform: translateX(-1%);
+  filter: drop-shadow(0 1px 1px rgba(12, 8, 0, 0.55));
+}
+.stage.revealed .titleLine:nth-child(2) .ignite {
+  /* Keep the amber (on-brand) but lighten the ramp — drop --amber-deep — so the
+     line glows on the dark plate instead of vanishing amber-on-amber. */
+  background-image: linear-gradient(100deg, #ffe1a6 0%, var(--honey) 42%, var(--amber) 92%);
+  background-position: 0 0;
+  filter: drop-shadow(0 1px 1px rgba(20, 12, 0, 0.6)) drop-shadow(0 0 24px rgba(245, 166, 35, 0.32));
+}
+.stage.revealed .launch {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+.stage.revealed .invite { pointer-events: none; }
+.stage.revealed .hint,
+.stage.revealed .subhint,
+.stage.revealed .meter { opacity: 0; }
+.stage.revealed .reset { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.stage.revealed .cell:not(.warm)::before { box-shadow: inset 0 0 0 1px rgba(245, 166, 35, 0.16); }
+/* Calm the flooded end-state at the source — molten honey, not near-white — so
+   the lit comb stops blinding the text. Reveal-scoped (0,3,0) so PRE-reveal
+   seeding stays punchy; a one-time repaint that reuses the single drop-shadow. */
+.stage.revealed .cell.warm {
+  background: radial-gradient(78% 62% at 50% 43%, #ffe9c0 0%, #ffce78 28%, #f8ba49 50%, #e89a26 76%, #b87b1a 100%);
+  filter: drop-shadow(0 0 11px rgba(235, 158, 44, 0.38));
+}
+.stage.revealed .cell.warm::after { opacity: 0.82; }
+/* End-state is composite-only: stop the now-occluded/invisible idle repaints. */
+.stage.revealed .cell.ember { animation: none; }
+.stage.revealed .spark { animation: none; }
+.stage.revealed .titleLine:nth-child(2) .ignite::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  mix-blend-mode: screen;
+  animation: sweep 3.4s ease-in-out 1.2s 1;
+}
+@keyframes sweep {
+  0% { transform: translateX(-30%); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateX(30%); opacity: 0; }
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .status .statusLine { display: none; }
+  .status .statusCompact { display: block; }
+}
+@media (max-width: 560px) {
+  .hero { max-width: 100%; }
+  .title { font-size: clamp(2.3rem, 11.5vw, 3.2rem); }
+  .subhead { font-size: 14px; }
+  .invite { gap: 14px; }
+  .vignette {
+    background:
+      linear-gradient(0deg, rgba(7, 6, 5, 0.94) 0%, rgba(7, 6, 5, 0.5) 40%, rgba(7, 6, 5, 0) 70%),
+      radial-gradient(140% 120% at 80% 4%, transparent 50%, rgba(7, 6, 5, 0.7) 100%);
+  }
+  /* Hero is full-width and text fills the screen here, so darken most of the
+     column bottom-up (covering the headline) + a top band behind the topbar,
+     leaving a hive "window" in the upper-middle. Legibility wins on small screens. */
+  .vignette::after {
+    background:
+      linear-gradient(0deg, rgba(7, 6, 5, 0.95) 0%, rgba(7, 6, 5, 0.82) 32%, rgba(7, 6, 5, 0.52) 56%, rgba(7, 6, 5, 0.18) 80%, rgba(7, 6, 5, 0.04) 100%),
+      linear-gradient(180deg, rgba(7, 6, 5, 0.6) 0%, rgba(7, 6, 5, 0.12) 13%, rgba(7, 6, 5, 0) 24%);
+  }
+}
+/* Short-viewport guards — keep the single screen scroll-free. */
+@media (max-height: 740px) {
+  .title { font-size: clamp(2.3rem, 5.4vw, 4.4rem); }
+  .subhead { margin-top: 16px; }
+  .invite { margin-top: 20px; }
+}
+@media (max-height: 670px) {
+  .subhead {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .eyebrow { margin-bottom: 12px; }
+}
+
+/* ── Reduced motion — information-equivalent, zero motion ────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .stage *,
+  .stage *::before,
+  .stage *::after {
+    animation: none !important;
+    transition-duration: 0.001ms !important;
+  }
+  .cursorGlow,
+  .buildSweep {
+    display: none;
+  }
+  /* Show everything statically — no construction/entrance; embers stay lit. */
+  .eyebrow,
+  .subhead,
+  .invite,
+  .topbar,
+  .cell {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .titleInner {
+    transform: none !important;
+  }
+  .cell.ember {
+    --eg: 0.2;
+  }
+  .favor {
+    clip-path: inset(0 0 0 0);
+  }
+}

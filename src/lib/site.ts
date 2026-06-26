@@ -22,7 +22,7 @@ export const site = {
   url: siteUrl,
   /** Used in <title> templates and the OG site name. */
   shortName: "FavoDigital",
-  tagline: "Websites & AI, built to perform.",
+  tagline: "Websites & AI, made to perform.",
   description:
     "FavoDigital is a web design, development and AI studio. We build fast, modern websites, digital marketing systems and AI-powered web experiences for ambitious brands.",
   /** Short copy for OG/Twitter cards and meta description fallbacks. */
@@ -32,17 +32,17 @@ export const site = {
     {
       title: "Web Design & Development",
       description:
-        "Custom, high-performance websites and web apps — designed, built and shipped end to end.",
+        "Bespoke, fast-loading sites built on Next.js — considered, and built to convert.",
     },
     {
       title: "Digital Marketing & SEO",
       description:
-        "Search, content and conversion systems that turn traffic into customers.",
+        "Search, content and campaigns that compound, so the right people find you first.",
     },
     {
       title: "AI Web Solutions",
       description:
-        "AI assistants, automation and intelligent web features wired into your product.",
+        "Assistants and automations woven into your site to do real work — never gimmicks.",
     },
   ],
   /** Primary market. Service area, not a physical storefront. TODO(confirm). */
@@ -55,9 +55,47 @@ export const site = {
     // linkedin: "https://www.linkedin.com/company/...", // TODO(add)
   },
   /** Brand color used for theme-color, manifest and OG art. */
-  themeColor: "#0B0E14",
-  accentColor: "#F5B642",
+  themeColor: "#0E0D0B",
+  accentColor: "#F5A623",
+  /** Brand-only reveal payoff line — no email. ⬡ marks the amber hex glyph. */
+  revealLine: "in your favo⬡r.",
+  /** Pre-launch stamp shown on the holding page. */
+  prelaunch: "Coming soon — 2026",
   locale: "en_US",
+
+  /*
+   * Holding-page on-screen copy — single source of truth for the hero UI.
+   * `⬡` is a placeholder for the amber honeycomb-hex glyph; the component
+   * swaps it for a styled <span> and exposes a plain reading to screen readers.
+   */
+  ui: {
+    wordmark: "Fav⬡Digital",
+    statusPrimary: "Studio — Denver, CO",
+    statusSecondary: "Opening 2026",
+    statusCompact: "Denver · 2026",
+    eyebrow: "Web · Marketing · AI — a studio",
+    heroLine1: "Websites & AI,",
+    heroLine2: "made to perform.",
+    subhead: [
+      { t: "We craft ", em: false },
+      { t: "fast, modern websites", em: true },
+      { t: " and ", em: false },
+      { t: "AI-driven experiences", em: true },
+      {
+        t: " — engineered to load light, convert with intent, and feel unmistakably yours.",
+        em: false,
+      },
+    ],
+    ctaHint: "Warm the hive",
+    ctaSubHint: "drag — it spreads",
+    meterSuffix: "warm",
+    nearHint: "nearly first light…",
+    revealStamp: "Launching 2026",
+    resetLabel: "Cool the hive ↺",
+    localityLabel: "Denver, Colorado — and remote across the United States.",
+    contactPrompt: "Let's make something —",
+    faviconWink: "We sweat the details — down to the fav⬡icon.",
+  },
 } as const;
 
 /** Flattened list of public social URLs for JSON-LD `sameAs`. */

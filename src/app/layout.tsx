@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { JsonLd } from "@/components/JsonLd";
@@ -14,6 +14,21 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  // Mono backs only small UI labels (never the LCP text), so keep it off the
+  // critical path — don't let it compete with Fraunces for early bandwidth.
+  preload: false,
+});
+
+// Fraunces is a variable font. next/font/google only allows the `axes` array
+// (here the optical-size `opsz` axis) when `weight` is the full variable range,
+// so we request `weight: "variable"` — this still covers 300–600 used in the UI.
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  axes: ["opsz"],
+  style: ["normal", "italic"],
+  weight: "variable",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -74,9 +89,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
     >
-      <body className="min-h-full favo-hex-field">
+      <body className="min-h-full">
         {children}
         <JsonLd />
         <Analytics />
