@@ -51,6 +51,13 @@ function cellSizeFor(width: number): number {
   return 96;
 }
 
+// ── First Light "bee flight" — timing ───────────────────────────────────────
+// At threshold a single luminous mote arcs from the player's spark to the seal;
+// its landing fires First Light + the bloom. One transient composited layer.
+const BEE_MS = 1400; // flight duration to the seal
+const BEE_FADE = 900; // mote lingers into the seal-press (matches sealPress delay)
+const BEE_APEX = 0.24; // arc bow as a fraction of the flight span
+
 export function HoneycombField() {
   const prefersReducedMotion = useReducedMotion();
 
@@ -58,6 +65,7 @@ export function HoneycombField() {
   const fieldRef = useRef<HTMLDivElement>(null);
   const meterFillRef = useRef<HTMLDivElement>(null);
   const pctRef = useRef<HTMLElement>(null);
+  const beeLayerRef = useRef<HTMLDivElement>(null);
 
   // The live percent + fill are written imperatively (see updateMeter), so warming
   // never re-renders. `nearLight` flips once (at 85%) to swap the hint copy.
@@ -83,6 +91,7 @@ export function HoneycombField() {
     const field = fieldRef.current;
     const meterFill = meterFillRef.current;
     if (!stage || !field || !meterFill) return;
+    const beeLayer = beeLayerRef.current;
 
     const cells: CellRecord[] = [];
     const cellByEl = new Map<HTMLButtonElement, CellRecord>();
@@ -95,6 +104,10 @@ export function HoneycombField() {
     let cellSize = 96;
     let lastMilestone = 0;
     let lastWarm = { x: stage.clientWidth / 2, y: stage.clientHeight * 0.45 };
+    // Bee-flight state — an rAF loop + one transient mote element.
+    let beeRaf = 0;
+    let beeLanded = false;
+    let mote: HTMLDivElement | null = null;
 
     // Cursor + glow-loop state.
     let lastX = stage.clientWidth / 2;
@@ -260,17 +273,24 @@ export function HoneycombField() {
       for (const p of picks) warmCell(p, false);
     };
 
+    const FIRST_LIGHT_SAY = "First light — FavoDigital, launching 2026.";
     const doReveal = () => {
       isRevealed = true;
+      // The bee flies first; its landing fires setRevealed + announce + the bloom.
+      // Reduced motion skips the flight and reveals instantly (info-equivalent path).
+      if (!reducedRef.current) {
+        beeFlight();
+        return;
+      }
       setRevealed(true);
-      setAnnounce("First light — FavoDigital, launching 2026.");
-      if (!reducedRef.current) bloomCascade();
+      setAnnounce(FIRST_LIGHT_SAY);
     };
 
-    // First Light — a constant-velocity ignition front, distance-ordered from the
-    // last-warmed cell. Capped so it never floods.
-    const bloomCascade = () => {
-      const { x, y } = lastWarm;
+    // First Light — a constant-velocity ignition front, distance-ordered from an
+    // origin (default: last-warmed cell; the bee passes its landing point). Capped so
+    // it never floods. Purely visual: no warmedCount / updateMeter / aria / --w write.
+    const bloomCascade = (origin?: { x: number; y: number }) => {
+      const { x, y } = origin ?? lastWarm;
       const remaining: { c: CellRecord; d: number }[] = [];
       for (const c of cells) {
         if (!c.warm) {
@@ -288,6 +308,107 @@ export function HoneycombField() {
           }
         }, Math.min(900, item.d / 2.2));
       }
+    };
+
+    // ── Bee flight — one transient composited mote arcs from the player's spark to
+    // the seal; its landing IS First Light. No cell scan, no per-frame layout read
+    // (the seal + lastWarm are measured once at launch). ───────────────────────────
+    const landBee = (lx: number, ly: number) => {
+      if (beeLanded) return;
+      beeLanded = true;
+      // Keep data-flying set across the reveal hand-off — .revealed hides the same
+      // hint/meter, so there's no flicker; killBee clears it on reset/resize/unmount.
+      if (mote) {
+        mote.style.transform = "translate3d(" + lx + "px," + ly + "px,0)";
+        mote.classList.add(styles.moteLand);
+        const dying = mote;
+        // Tracked so normal flow cleans it; killBee removes directly if a reset races.
+        trackedTimeout(() => {
+          dying.remove();
+          if (mote === dying) mote = null;
+        }, BEE_FADE);
+      }
+      setRevealed(true);
+      setAnnounce(FIRST_LIGHT_SAY);
+      if (!reducedRef.current) bloomCascade({ x: lx, y: ly }); // bloom FROM the landing
+    };
+
+    const beeFlight = () => {
+      if (!beeLayer) {
+        // No layer to fly in → reveal immediately (graceful; never strands the page).
+        setRevealed(true);
+        setAnnounce(FIRST_LIGHT_SAY);
+        if (!reducedRef.current) bloomCascade();
+        return;
+      }
+      beeLanded = false;
+
+      const seal = stage.querySelector<HTMLElement>("." + styles.favorHex);
+      const start = { x: lastWarm.x, y: lastWarm.y };
+      let target = { x: stage.clientWidth * 0.16, y: stage.clientHeight * 0.82 };
+      if (seal) {
+        const r = seal.getBoundingClientRect();
+        target = {
+          x: r.left - stageRect.left + r.width / 2,
+          // -8: .launch sits translateY(8px) until revealed, then rises — land where
+          // the seal will SETTLE, not its hidden position.
+          y: r.top - stageRect.top + r.height / 2 - 8,
+        };
+      }
+      const span = Math.hypot(target.x - start.x, target.y - start.y);
+      const topPad = Math.max(44, cellSize * 0.6);
+      // Bow the arc up and over, clamped on-screen for short/mobile viewports.
+      const ctrl = {
+        x: (start.x + target.x) / 2,
+        y: Math.max(topPad, Math.min(start.y, target.y) - BEE_APEX * span),
+      };
+
+      // Set the flight flag AFTER the layout reads above, so the [data-flying] style
+      // changes aren't flushed by the seal getBoundingClientRect.
+      stage.dataset.flying = "on";
+      mote = document.createElement("div");
+      mote.className = styles.mote;
+      mote.setAttribute("aria-hidden", "true");
+      beeLayer.appendChild(mote);
+
+      const t0 = performance.now();
+      let prevX = start.x;
+      let prevY = start.y;
+      const step = (now: number) => {
+        const raw = Math.min(1, (now - t0) / BEE_MS);
+        const t = raw < 0.5 ? 2 * raw * raw : 1 - Math.pow(-2 * raw + 2, 2) / 2;
+        const mt = 1 - t;
+        const x = mt * mt * start.x + 2 * mt * t * ctrl.x + t * t * target.x;
+        const y = mt * mt * start.y + 2 * mt * t * ctrl.y + t * t * target.y;
+        const ang = (Math.atan2(y - prevY, x - prevX) * 180) / Math.PI;
+        prevX = x;
+        prevY = y;
+        if (mote) {
+          // translate3d + rotate the whole layer = composite-only (no per-frame
+          // repaint): the disc is radial-symmetric and the trail is a static child,
+          // so rotating the layer orients the comet without re-rasterising the shadow.
+          mote.style.transform =
+            "translate3d(" + x + "px," + y + "px,0) rotate(" + ang + "deg)";
+        }
+        if (raw < 1) {
+          beeRaf = requestAnimationFrame(step);
+        } else {
+          beeRaf = 0;
+          landBee(target.x, target.y);
+        }
+      };
+      beeRaf = requestAnimationFrame(step);
+    };
+
+    const killBee = () => {
+      if (beeRaf) cancelAnimationFrame(beeRaf);
+      beeRaf = 0;
+      beeLanded = false;
+      if (mote) {
+        mote.remove();
+        mote = null;
+      }
+      stage.removeAttribute("data-flying");
     };
 
     const onCellKey = (e: KeyboardEvent) => {
@@ -471,6 +592,7 @@ export function HoneycombField() {
       lastMilestone = 0;
       nearLatched = false;
       frontier.clear();
+      killBee(); // cancels the flight rAF + removes the mote (clearTrackedTimeouts can't)
       setRevealed(false);
       setNearLight(false);
       setAnnounce("The hive has cooled.");
@@ -493,6 +615,10 @@ export function HoneycombField() {
       resizeTimer = setTimeout(() => {
         buildField();
         isRevealed = false;
+        killBee();
+        // Un-latch the near-light hint so a post-reveal resize can't leave it stuck.
+        nearLatched = false;
+        setNearLight(false);
         setRevealed(false);
       }, 220);
     };
@@ -556,6 +682,7 @@ export function HoneycombField() {
       window.removeEventListener("scroll", onScroll);
       if (resizeTimer) clearTimeout(resizeTimer);
       if (raf) cancelAnimationFrame(raf);
+      killBee();
       clearInterval(spreadId);
       clearTrackedTimeouts();
       for (const o of cells) {
@@ -677,6 +804,10 @@ export function HoneycombField() {
 
         <HiveBand entered={booted} />
       </div>
+
+      {/* Bee-flight mote layer — empty until First Light; above the UI (z5) so the
+          mote reads over the scrim + headline; decorative + inert. */}
+      <div ref={beeLayerRef} className={styles.beeLayer} aria-hidden="true" />
 
       {/* Polite, milestone-only announcements for screen readers. */}
       <span className="sr-only" role="status" aria-live="polite">

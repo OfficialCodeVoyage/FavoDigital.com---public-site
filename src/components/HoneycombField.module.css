@@ -766,6 +766,69 @@
   100% { transform: translateX(30%); opacity: 0; }
 }
 
+/* ── Bee flight (data-flying during the arc) ─────────────────────────────────
+   One transient composited mote above the UI (z5). Opaque honey core + a single
+   drop-shadow (NOT screen-blend) so it reads over both the dark comb and the light
+   headline it crosses. The layer is empty / zero-cost until First Light. */
+.beeLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 5; /* above .ui (z4) + scrim (z3) — the mote is never occluded */
+  pointer-events: none;
+}
+/* .mote is a 0×0 positioner (JS writes translate3d to it); the visible disc + trail
+   are pseudo-elements, so the landing flare scales the disc WITHOUT clobbering the
+   parent's translate. */
+.mote {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform: translate3d(0, 0, 0);
+  will-change: transform; /* one transient layer; the element is removed after flight */
+}
+.mote::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px; /* centre the disc on the translate point */
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 42%, #fffaf0 0%, #ffe6b0 34%, #ffc861 60%, #f5a623 100%);
+  box-shadow: 0 0 16px 4px rgba(255, 196, 92, 0.85), 0 0 4px 1px rgba(255, 245, 220, 0.9);
+}
+.mote::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 60px;
+  height: 5px;
+  margin-top: -2.5px;
+  /* Static (points left); the whole .mote layer rotates to orient the comet opposite
+     travel — composite-only, so the trail never re-rasterises the layer per frame. */
+  background: linear-gradient(90deg, rgba(255, 200, 110, 0) 0%, rgba(255, 206, 120, 0.5) 78%, rgba(255, 232, 188, 0.85) 100%);
+  border-radius: 4px;
+}
+.mote.moteLand::after { animation: moteLand 0.9s var(--ease-out) forwards; }
+.mote.moteLand::before { animation: moteTrailOut 0.3s linear forwards; }
+@keyframes moteLand {
+  0% { transform: scale(1); opacity: 1; }
+  18% { transform: scale(1.6); opacity: 1; }
+  100% { transform: scale(0.35); opacity: 0; }
+}
+@keyframes moteTrailOut { to { opacity: 0; } }
+
+/* During the flight, quiet the invite + cursor glow so the mote is the only motion
+   (handed off to .revealed's fades at landing). */
+.stage[data-flying] .cursorGlow { opacity: 0; }
+.stage[data-flying] .hint,
+.stage[data-flying] .subhint,
+.stage[data-flying] .meter { opacity: 0; transition: opacity 0.45s var(--ease-soft); }
+
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .status .statusLine { display: none; }
@@ -815,7 +878,8 @@
     transition-duration: 0.001ms !important;
   }
   .cursorGlow,
-  .buildSweep {
+  .buildSweep,
+  .beeLayer {
     display: none;
   }
   /* Show everything statically — no construction/entrance; embers stay lit. */
