@@ -47,7 +47,7 @@ export const site = {
   ],
   /** Primary market. Service area, not a physical storefront. TODO(confirm). */
   serviceArea: "Denver, Colorado & remote — United States",
-  email: "hello@favodigital.com", // TODO(confirm)
+  email: "paul@favodigital.com",
   /** Public social profiles → JSON-LD `sameAs`. Add as they go live. */
   social: {
     github: "https://github.com/OfficialCodeVoyage",
