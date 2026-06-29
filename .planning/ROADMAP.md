@@ -2,7 +2,7 @@
 
 ## Phase 01 — Backlink route coverage: branded 404 + registry-driven landing stubs
 
-**Status:** in progress (started 2026-06-28)
+**Status:** complete (2026-06-28) — verified, see `phases/01-backlink-route-coverage/VERIFICATION.md`
 
 **Goal:** Stop losing inbound backlink traffic that currently dead-ends on Next.js's
 default 404. Known backlink URLs resolve to real, indexable "coming soon" landing
