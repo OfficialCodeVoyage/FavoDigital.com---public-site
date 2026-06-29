@@ -1,0 +1,277 @@
+/*
+ * /about-us — studio About page. Reuses the StaticHive backdrop + brand tokens
+ * (matches the 404 + landing pages). Plain copy; the "what we do" items are
+ * honeycomb-cell links to the service pages. Static; entrance via global .favo-rise.
+ */
+.viewport {
+  position: relative;
+  height: 100dvh;
+  overflow-y: auto;
+}
+.center {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: clamp(40px, 8vh, 96px) clamp(20px, 6vw, 48px);
+}
+
+.card {
+  width: 100%;
+  max-width: 64ch;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(15px, 2.5vh, 24px);
+}
+
+.wordmark {
+  margin: 0 0 clamp(8px, 2vh, 18px);
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(19px, 2.2vw, 24px);
+  letter-spacing: -0.01em;
+  color: var(--paper);
+}
+.hex {
+  display: inline-block;
+  width: 0.62em;
+  height: 0.7em;
+  margin: 0 0.02em;
+  vertical-align: -0.06em;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(150deg, var(--honey), var(--amber) 55%, var(--amber-deep));
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.65em;
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+.eyebrow::before {
+  content: "";
+  width: 8px;
+  height: 9px;
+  flex: 0 0 auto;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(150deg, var(--honey), var(--amber) 60%, var(--amber-deep));
+  box-shadow: 0 0 14px rgba(245, 166, 35, 0.55);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(30px, 5.4vw, 54px);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: var(--paper);
+  text-wrap: balance;
+}
+
+.body {
+  margin: 0;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: clamp(15px, 1.5vw, 17px);
+  line-height: 1.62;
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+/* What we do — honeycomb-cell links to the service pages. */
+.doSection {
+  margin-top: clamp(8px, 1.6vh, 14px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.6vh, 14px);
+}
+.doHeading {
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+}
+.doList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(10px, 1.4vw, 16px);
+}
+.doItem {
+  display: flex;
+  min-width: 0;
+}
+.doLink {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  width: 100%;
+  padding: clamp(16px, 1.6vw, 20px);
+  border-radius: 16px;
+  border: 1px solid rgba(245, 166, 35, 0.12);
+  background:
+    radial-gradient(125% 80% at 0% 0%, rgba(245, 166, 35, 0.07), transparent 58%),
+    linear-gradient(180deg, rgba(244, 239, 227, 0.05), rgba(244, 239, 227, 0.012));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 215, 140, 0.1),
+    0 10px 28px -20px rgba(0, 0, 0, 0.85);
+  text-decoration: none;
+  transition:
+    border-color 0.35s ease,
+    transform 0.35s ease,
+    box-shadow 0.35s ease;
+}
+.doLink::before {
+  content: "";
+  width: 14px;
+  height: 16px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(150deg, var(--honey), var(--amber) 58%, var(--amber-deep));
+  box-shadow: 0 0 18px rgba(245, 166, 35, 0.45);
+}
+.doLink:hover {
+  border-color: rgba(245, 166, 35, 0.42);
+  transform: translateY(-3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 215, 140, 0.18),
+    0 18px 40px -22px rgba(245, 166, 35, 0.4);
+}
+.doLink:focus-visible {
+  outline: 2px solid var(--honey);
+  outline-offset: 3px;
+}
+.doKicker {
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+.doBlurb {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.locality {
+  margin: clamp(4px, 1vh, 8px) 0 0;
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--muted-dim);
+}
+
+.actions {
+  margin-top: clamp(8px, 1.6vh, 14px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(12px, 2vw, 24px);
+}
+.primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.78em 1.4em;
+  border-radius: 999px;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--hero-ink);
+  background: linear-gradient(150deg, var(--honey), var(--amber) 58%, var(--amber-deep));
+  text-decoration: none;
+  box-shadow: 0 10px 30px -12px rgba(245, 166, 35, 0.55);
+  transition:
+    filter 0.3s,
+    transform 0.3s,
+    box-shadow 0.3s;
+}
+.primary::after {
+  content: "\2192";
+  font-size: 1.05em;
+  transition: transform 0.3s;
+}
+.primary:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 34px -12px rgba(245, 166, 35, 0.6);
+}
+.primary:hover::after {
+  transform: translateX(3px);
+}
+.primary:focus-visible {
+  outline: 2px solid var(--honey);
+  outline-offset: 3px;
+}
+
+.contact {
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  color: var(--muted-dim);
+}
+.contact a {
+  color: var(--paper);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(245, 166, 35, 0.4);
+  padding-bottom: 1px;
+  transition:
+    color 0.3s,
+    border-color 0.3s;
+}
+.contact a:hover {
+  color: var(--honey);
+  border-color: var(--honey);
+}
+.contact a:focus-visible {
+  outline: 2px solid var(--honey);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.stamp {
+  display: flex;
+  align-items: center;
+  gap: 0.65em;
+  margin: clamp(8px, 1.8vh, 16px) 0 0;
+  padding-top: clamp(12px, 1.8vh, 18px);
+  border-top: 1px solid rgba(245, 166, 35, 0.1);
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+}
+.stamp::before {
+  content: "";
+  width: 7px;
+  height: 8px;
+  flex: 0 0 auto;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: var(--amber);
+  box-shadow: 0 0 10px rgba(245, 166, 35, 0.6);
+}
+
+@media (max-width: 720px) {
+  .doList {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

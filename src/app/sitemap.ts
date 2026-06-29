@@ -12,6 +12,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
+    {
+      url: `${siteUrl}/about-us`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
     // Known backlink landing pages (registry-driven). The 404 is never listed, and
     // pages that canonicalize elsewhere (canonicalTo) are excluded as non-canonical.
     ...landingRoutes
