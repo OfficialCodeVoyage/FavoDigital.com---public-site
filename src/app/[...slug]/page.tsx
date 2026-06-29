@@ -33,8 +33,9 @@ export async function generateMetadata({
     title: entry.title,
     description: entry.description,
     // Self-referential canonical — required, or the page inherits the layout's "/"
-    // canonical and won't be indexed separately.
-    alternates: { canonical: path },
+    // canonical and won't be indexed separately. `canonicalTo` lets a page consolidate
+    // its signals into another URL (e.g. an old variant → the canonical service page).
+    alternates: { canonical: entry.canonicalTo ?? path },
     openGraph: {
       title: entry.title,
       description: entry.description,
@@ -59,7 +60,7 @@ export default async function LandingPage({
       title={entry.heading}
       body={entry.body}
       mailtoSubject={entry.mailtoSubject}
-      highlights={site.services}
+      highlights={entry.highlights ?? site.services}
       stamp={site.prelaunch}
     />
   );

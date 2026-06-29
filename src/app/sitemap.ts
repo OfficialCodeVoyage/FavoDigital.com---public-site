@@ -12,9 +12,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1,
     },
-    // Known backlink landing pages (registry-driven). The 404 is never listed.
+    // Known backlink landing pages (registry-driven). The 404 is never listed, and
+    // pages that canonicalize elsewhere (canonicalTo) are excluded as non-canonical.
     ...landingRoutes
-      .filter((route) => route.index !== false)
+      .filter((route) => route.index !== false && !route.canonicalTo)
       .map((route) => ({
         url: `${siteUrl}/${route.slug}`,
         lastModified,
