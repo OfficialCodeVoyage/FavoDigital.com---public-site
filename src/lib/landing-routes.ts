@@ -51,6 +51,52 @@ export const landingRoutes: readonly LandingRoute[] = [
     body: "Ahead of our 2026 launch, FavoDigital is building a small number of Shopify storefronts at no cost — fast, modern and built to convert — to prove our approach with real brands. Slots are limited and selective. Tell us about your business and what you sell, and we'll let you know if you're a fit for a free launch build.",
     mailtoSubject: "Free Shopify website offer",
   },
+
+  // Reclaimed from the previous favodigital.com (a prior marketing agency whose
+  // indexed URLs still carry backlinks). Only topically-aligned SERVICE pages the
+  // new studio offers — junk/hacked paths, thin variants, blog posts and category
+  // archives are intentionally left to the 404. If GSC later shows toxic backlinks
+  // to any of these, flip `index: false` (one line) and disavow the referrers.
+  {
+    slug: "lead-generation",
+    title: "Lead Generation",
+    description:
+      "FavoDigital builds lead-generation systems — landing pages, funnels and campaigns engineered to turn traffic into qualified enquiries. Launching 2026; taking briefs now.",
+    eyebrow: "Digital marketing — lead generation",
+    heading: "Lead generation that fills your pipeline.",
+    body: "FavoDigital builds lead-generation systems that compound — fast landing pages, considered funnels, and search and paid campaigns tuned to bring you qualified enquiries, not vanity clicks. This service page goes live with our 2026 launch, but the studio is already taking briefs. Tell us who you're trying to reach and we'll map the system with you.",
+    mailtoSubject: "Lead generation enquiry",
+  },
+  {
+    slug: "best-seo-services-for-top-rankings",
+    title: "SEO Services",
+    description:
+      "FavoDigital's SEO — technical, content and authority work that compounds, so the right people find you first. Denver & remote US. Launching 2026; taking briefs now.",
+    eyebrow: "Digital marketing — SEO",
+    heading: "SEO that earns the top of the page.",
+    body: "FavoDigital does SEO the durable way — fast, technically clean builds, content that answers real intent, and authority that compounds over time, so the right people find you first instead of your competitors. This service page goes live with our 2026 launch, but the studio is already taking briefs. Tell us where you want to rank and we'll map the path.",
+    mailtoSubject: "SEO services enquiry",
+  },
+  {
+    slug: "google-advertising-management-services",
+    title: "Google Ads Management",
+    description:
+      "FavoDigital manages Google Ads that convert — tight targeting, sharp creative and budgets spent where they pay back. Launching 2026; taking briefs now.",
+    eyebrow: "Digital marketing — Google Ads",
+    heading: "Google Ads, managed to pay back.",
+    body: "FavoDigital runs Google Ads that respect your budget — tight targeting, sharp creative, and continuous optimisation so spend lands where it actually converts, not where it leaks. This service page goes live with our 2026 launch, but the studio is already taking briefs. Tell us your goals and we'll map the account with you.",
+    mailtoSubject: "Google Ads management enquiry",
+  },
+  {
+    slug: "facebook-ads-marketing",
+    title: "Facebook & Instagram Ads",
+    description:
+      "FavoDigital builds Meta ad campaigns — Facebook & Instagram creative and targeting tuned to reach the right audience and sell. Launching 2026; taking briefs now.",
+    eyebrow: "Digital marketing — Meta ads",
+    heading: "Facebook & Instagram ads that sell.",
+    body: "FavoDigital builds Meta campaigns that earn their keep — Facebook and Instagram creative, audience targeting, and testing tuned to reach the right people and turn attention into sales. This service page goes live with our 2026 launch, but the studio is already taking briefs. Tell us about your brand and we'll map the campaign.",
+    mailtoSubject: "Facebook & Instagram ads enquiry",
+  },
 ];
 
 /** Look up a registry entry from catch-all segments (joined with "/"). */
