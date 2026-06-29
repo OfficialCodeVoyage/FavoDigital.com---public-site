@@ -1,18 +1,21 @@
 /*
  * HoldingCard — shared branded holding surface for the 404 and the registry-driven
- * backlink landing pages. The deep-ink background comes from the global `body`
- * gradient; this module styles the centered card. Entrance is the global
- * `.favo-rise` (which already honors prefers-reduced-motion).
+ * landing pages. Aesthetic: cinematic deep ink, one precious honey-amber glow, the
+ * hexagon as the structural motif. Static — the only motion is the global
+ * `.favo-rise` entrance, which already honors prefers-reduced-motion. The home hero
+ * is untouched (it doesn't use HoldingCard).
  */
 
-/* Owns the scroll: `body` is globally overflow:hidden (the home page is a fixed
-   single screen), so center inside a dvh-tall scroll container and let tall
-   content scroll internally with the top reachable. */
 .viewport {
+  position: relative;
   height: 100dvh;
   overflow-y: auto;
 }
+/* The honeycomb backdrop + warm glow are rendered by <StaticHive /> (fixed, z-index 0). */
+
 .center {
+  position: relative;
+  z-index: 1;
   min-height: 100%;
   display: grid;
   place-items: center;
@@ -21,14 +24,14 @@
 
 .card {
   width: 100%;
-  max-width: 60ch;
+  max-width: 62ch;
   display: flex;
   flex-direction: column;
-  gap: clamp(14px, 2.4vh, 22px);
+  gap: clamp(15px, 2.5vh, 24px);
 }
 
 .wordmark {
-  margin: 0 0 clamp(6px, 1.6vh, 14px);
+  margin: 0 0 clamp(8px, 2vh, 18px);
   font-family: var(--font-fraunces), Georgia, serif;
   font-weight: 600;
   font-size: clamp(19px, 2.2vw, 24px);
@@ -45,23 +48,36 @@
   background: linear-gradient(150deg, var(--honey), var(--amber) 55%, var(--amber-deep));
 }
 
+/* Eyebrow — mono kicker led by a small glowing hex marker. */
 .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.65em;
   margin: 0;
   font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 11.5px;
   font-weight: 500;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--amber);
+}
+.eyebrow::before {
+  content: "";
+  width: 8px;
+  height: 9px;
+  flex: 0 0 auto;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(150deg, var(--honey), var(--amber) 60%, var(--amber-deep));
+  box-shadow: 0 0 14px rgba(245, 166, 35, 0.55);
 }
 
 .title {
   margin: 0;
   font-family: var(--font-fraunces), Georgia, serif;
   font-weight: 600;
-  font-size: clamp(28px, 5.2vw, 50px);
-  line-height: 1.06;
-  letter-spacing: -0.018em;
+  font-size: clamp(30px, 5.4vw, 54px);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
   color: var(--paper);
   text-wrap: balance;
 }
@@ -70,16 +86,15 @@
   margin: 0;
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   font-size: clamp(15px, 1.5vw, 17px);
-  line-height: 1.6;
+  line-height: 1.62;
   color: var(--muted);
-  max-width: 56ch;
+  max-width: 58ch;
 }
 
-/* Crawlable services grid — mirrors HiveBand's pattern. */
+/* Highlights as honeycomb cells — an elevated glass panel lit from the top-left
+   where the hex marker sits, hairline amber edge, soft shadow, refined hover. */
 .highlights {
-  margin-top: clamp(6px, 1.4vh, 12px);
-  padding-top: clamp(14px, 2vh, 22px);
-  border-top: 1px solid rgba(245, 166, 35, 0.12);
+  margin-top: clamp(8px, 1.6vh, 14px);
 }
 .svcList {
   list-style: none;
@@ -87,56 +102,98 @@
   padding: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(14px, 2vw, 28px);
+  gap: clamp(10px, 1.4vw, 16px);
 }
 .svcItem {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 11px;
   min-width: 0;
+  padding: clamp(16px, 1.6vw, 20px);
+  border-radius: 16px;
+  border: 1px solid rgba(245, 166, 35, 0.12);
+  background:
+    radial-gradient(125% 80% at 0% 0%, rgba(245, 166, 35, 0.07), transparent 58%),
+    linear-gradient(180deg, rgba(244, 239, 227, 0.05), rgba(244, 239, 227, 0.012));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 215, 140, 0.1),
+    0 10px 28px -20px rgba(0, 0, 0, 0.85);
+  transition:
+    border-color 0.35s ease,
+    transform 0.35s ease,
+    box-shadow 0.35s ease;
+}
+.svcItem:hover {
+  border-color: rgba(245, 166, 35, 0.42);
+  transform: translateY(-3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 215, 140, 0.18),
+    0 18px 40px -22px rgba(245, 166, 35, 0.4);
+}
+.svcItem::before {
+  content: "";
+  width: 14px;
+  height: 16px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(150deg, var(--honey), var(--amber) 58%, var(--amber-deep));
+  box-shadow: 0 0 18px rgba(245, 166, 35, 0.45);
 }
 .svcKicker {
   margin: 0;
   font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--paper);
 }
 .svcBlurb {
   margin: 0;
   font-size: 12.5px;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--muted);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
 .actions {
-  margin-top: clamp(8px, 2vh, 16px);
+  margin-top: clamp(10px, 2vh, 18px);
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: clamp(10px, 1.6vh, 16px);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(12px, 2vw, 24px);
 }
 .primary {
   display: inline-flex;
   align-items: center;
-  padding: 0.72em 1.25em;
+  gap: 0.5em;
+  padding: 0.78em 1.4em;
   border-radius: 999px;
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--hero-ink);
-  background: linear-gradient(150deg, var(--honey), var(--amber) 60%, var(--amber-deep));
+  background: linear-gradient(150deg, var(--honey), var(--amber) 58%, var(--amber-deep));
   text-decoration: none;
+  box-shadow: 0 10px 30px -12px rgba(245, 166, 35, 0.55);
   transition:
     filter 0.3s,
-    transform 0.3s;
+    transform 0.3s,
+    box-shadow 0.3s;
+}
+.primary::after {
+  content: "\2192";
+  font-size: 1.05em;
+  transition: transform 0.3s;
 }
 .primary:hover {
-  filter: brightness(1.06);
+  filter: brightness(1.05);
   transform: translateY(-1px);
+  box-shadow: 0 14px 34px -12px rgba(245, 166, 35, 0.6);
+}
+.primary:hover::after {
+  transform: translateX(3px);
 }
 .primary:focus-visible {
   outline: 2px solid var(--honey);
@@ -169,26 +226,33 @@
   border-radius: 2px;
 }
 
+/* Launch stamp — hairline rule, a small amber hex bullet, tracked mono label. */
 .stamp {
-  margin: clamp(6px, 1.4vh, 12px) 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.65em;
+  margin: clamp(8px, 1.8vh, 16px) 0 0;
+  padding-top: clamp(12px, 1.8vh, 18px);
+  border-top: 1px solid rgba(245, 166, 35, 0.1);
   font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 11px;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--muted-dim);
+}
+.stamp::before {
+  content: "";
+  width: 7px;
+  height: 8px;
+  flex: 0 0 auto;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: var(--amber);
+  box-shadow: 0 0 10px rgba(245, 166, 35, 0.6);
 }
 
 @media (max-width: 720px) {
   .svcList {
     grid-template-columns: 1fr;
-    gap: 10px;
-  }
-  .svcItem {
-    flex-direction: row;
-    align-items: baseline;
-    gap: 10px;
-  }
-  .svcKicker {
-    flex: 0 0 auto;
+    gap: 8px;
   }
 }

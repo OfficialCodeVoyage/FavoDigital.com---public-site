@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { site } from "@/lib/site";
 import { HexText } from "./HexGlyph";
+import { StaticHive } from "./StaticHive";
 import styles from "./HoldingCard.module.css";
 
 export interface HoldingCardProps {
@@ -52,6 +53,7 @@ export function HoldingCard({
 
   return (
     <main className={styles.viewport}>
+      <StaticHive />
       <div className={styles.center}>
         <article className={`${styles.card} favo-rise`}>
           <p className={styles.wordmark}>
