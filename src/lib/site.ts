@@ -95,6 +95,21 @@ export const site = {
     localityLabel: "Denver, Colorado — and remote across the United States.",
     contactPrompt: "Let's make something —",
     faviconWink: "We sweat the details — down to the fav⬡icon.",
+    /** Default primary-CTA label on holding pages (404 + landing stubs). */
+    homeLink: "Back to the home page",
+  },
+
+  /*
+   * Branded 404 copy — shown when a URL matches neither the home page nor any
+   * known backlink landing route (see src/lib/landing-routes.ts). Plain copy,
+   * no ⬡ glyph placeholders.
+   */
+  notFound: {
+    metaTitle: "Page not found",
+    eyebrow: "404 — off the comb",
+    title: "This cell of the hive isn't built yet.",
+    body: "The page you're after doesn't exist — or a link pointed somewhere we haven't mapped onto the comb yet. We're still building FavoDigital ahead of our 2026 launch. Head back to the home page, or email us and we'll point you the right way.",
+    mailtoSubject: "Broken link on favodigital.com",
   },
 } as const;
 

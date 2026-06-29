@@ -1,0 +1,194 @@
+/*
+ * HoldingCard — shared branded holding surface for the 404 and the registry-driven
+ * backlink landing pages. The deep-ink background comes from the global `body`
+ * gradient; this module styles the centered card. Entrance is the global
+ * `.favo-rise` (which already honors prefers-reduced-motion).
+ */
+
+/* Owns the scroll: `body` is globally overflow:hidden (the home page is a fixed
+   single screen), so center inside a dvh-tall scroll container and let tall
+   content scroll internally with the top reachable. */
+.viewport {
+  height: 100dvh;
+  overflow-y: auto;
+}
+.center {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: clamp(40px, 8vh, 96px) clamp(20px, 6vw, 48px);
+}
+
+.card {
+  width: 100%;
+  max-width: 60ch;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 2.4vh, 22px);
+}
+
+.wordmark {
+  margin: 0 0 clamp(6px, 1.6vh, 14px);
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(19px, 2.2vw, 24px);
+  letter-spacing: -0.01em;
+  color: var(--paper);
+}
+.hex {
+  display: inline-block;
+  width: 0.62em;
+  height: 0.7em;
+  margin: 0 0.02em;
+  vertical-align: -0.06em;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(150deg, var(--honey), var(--amber) 55%, var(--amber-deep));
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(28px, 5.2vw, 50px);
+  line-height: 1.06;
+  letter-spacing: -0.018em;
+  color: var(--paper);
+  text-wrap: balance;
+}
+
+.body {
+  margin: 0;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: clamp(15px, 1.5vw, 17px);
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 56ch;
+}
+
+/* Crawlable services grid — mirrors HiveBand's pattern. */
+.highlights {
+  margin-top: clamp(6px, 1.4vh, 12px);
+  padding-top: clamp(14px, 2vh, 22px);
+  border-top: 1px solid rgba(245, 166, 35, 0.12);
+}
+.svcList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(14px, 2vw, 28px);
+}
+.svcItem {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.svcKicker {
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+.svcBlurb {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.actions {
+  margin-top: clamp(8px, 2vh, 16px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(10px, 1.6vh, 16px);
+}
+.primary {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.72em 1.25em;
+  border-radius: 999px;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--hero-ink);
+  background: linear-gradient(150deg, var(--honey), var(--amber) 60%, var(--amber-deep));
+  text-decoration: none;
+  transition:
+    filter 0.3s,
+    transform 0.3s;
+}
+.primary:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+.primary:focus-visible {
+  outline: 2px solid var(--honey);
+  outline-offset: 3px;
+}
+
+.contact {
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  color: var(--muted-dim);
+}
+.contact a {
+  color: var(--paper);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(245, 166, 35, 0.4);
+  padding-bottom: 1px;
+  transition:
+    color 0.3s,
+    border-color 0.3s;
+}
+.contact a:hover {
+  color: var(--honey);
+  border-color: var(--honey);
+}
+.contact a:focus-visible {
+  outline: 2px solid var(--honey);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.stamp {
+  margin: clamp(6px, 1.4vh, 12px) 0 0;
+  font-family: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-dim);
+}
+
+@media (max-width: 720px) {
+  .svcList {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .svcItem {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .svcKicker {
+    flex: 0 0 auto;
+  }
+}
